@@ -1,6 +1,7 @@
 #include "AmericanOption.hpp"
 
 #include <iostream>
+#include <ctime>
 
 int main(int argc, char *argv[]) {
     if (argc == 7) {
@@ -18,11 +19,17 @@ int main(int argc, char *argv[]) {
         // Output option details
         std::cout << option->toString() << std::endl;
 
-        // Pricing
+        // Pricing with timer
+        std::clock_t start = std::clock();
         option->pricing();
+        std::clock_t end = std::clock();
+        double duration = (double)(end - start) / CLOCKS_PER_SEC;
 
         // Print price at 0
         std::cout << "Price: " << option->getPrice(0, 0) << std::endl;
+
+        // Show timer
+        std::cout << "Computation time: " << duration << " s" << std::endl;
 
         // Free memory
         delete option;

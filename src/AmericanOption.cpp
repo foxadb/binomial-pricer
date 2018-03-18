@@ -67,6 +67,7 @@ void AmericanOption::pricing() {
             // Storage price in the binomial tree
             this->price[i][j] = price;
 
+            // Update mult factor
             mult *= this->u / this->d;
         }
     }
