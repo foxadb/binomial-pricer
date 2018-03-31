@@ -28,12 +28,12 @@ make
 ## Run
 
 ```
-./src/pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+./standard-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
 ```
 
 Example:
 
 ```
-./src/pricer 100 100 0.05 0.2 3 5000
+./standard-pricer 100 100 0.05 0.2 3 5000
 ```
 Should return 8.65 approximately

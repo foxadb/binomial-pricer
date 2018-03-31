@@ -24,5 +24,5 @@ private:
     double d;
     double p;
 
-    double **price;
+    double *prices;
 };
