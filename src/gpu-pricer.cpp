@@ -1,4 +1,4 @@
-#include "AmericanOption.hpp"
+#include "AmericanOptionGPU.hpp"
 
 #include <iostream>
 #include <ctime>
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
         int N = std::atoi(argv[6]);
 
         // Create american option
-        AmericanOption *option = new AmericanOption(X0, K, r, sigma, T, N);
+        AmericanOptionGPU *option = new AmericanOptionGPU(X0, K, r, sigma, T, N);
 
         // Output option details
         std::cout << option->toString() << std::endl;

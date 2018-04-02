@@ -1,11 +1,11 @@
 #include <CL/cl.hpp>
 #include <string>
 
-class AmericanOptionOCL {
+class AmericanOptionGPU {
 public:
 
-    AmericanOptionOCL(double X0, double K, double r, double sigma, double T, int N);
-    ~AmericanOptionOCL();
+    AmericanOptionGPU(double X0, double K, double r, double sigma, double T, int N);
+    ~AmericanOptionGPU();
 
     std::string toString();
     double payoff(double stock);

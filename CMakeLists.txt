@@ -11,8 +11,8 @@ link_directories(${OpenCL_LIBRARY})
 add_subdirectory(src)
 
 # Generate executables from src
-add_executable(standard-pricer src/standard-pricer.cpp)
-target_link_libraries(standard-pricer ${OpenCL_LIBRARY} binomial-pricer)
+add_executable(cpu-pricer src/cpu-pricer.cpp)
+target_link_libraries(cpu-pricer ${OpenCL_LIBRARY} binomial-pricer)
 
-add_executable(opencl-pricer src/opencl-pricer.cpp)
-target_link_libraries(opencl-pricer ${OpenCL_LIBRARY} binomial-pricer)
+add_executable(gpu-pricer src/gpu-pricer.cpp)
+target_link_libraries(gpu-pricer ${OpenCL_LIBRARY} binomial-pricer)

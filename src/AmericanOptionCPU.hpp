@@ -1,10 +1,10 @@
 #include <string>
 
-class AmericanOption {
+class AmericanOptionCPU {
 public:
 
-    AmericanOption(double X0, double K, double r, double sigma, double T, int N);
-    ~AmericanOption();
+    AmericanOptionCPU(double X0, double K, double r, double sigma, double T, int N);
+    ~AmericanOptionCPU();
 
     std::string toString();
     double payoff(double stock);

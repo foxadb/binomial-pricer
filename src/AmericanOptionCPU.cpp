@@ -1,10 +1,10 @@
-#include "AmericanOption.hpp"
+#include "AmericanOptionCPU.hpp"
 
 #include <iostream>
 #include <string>
 #include <cmath>
 
-AmericanOption::AmericanOption(double X0, double K, double r, double sigma, double T, int N) {
+AmericanOptionCPU::AmericanOptionCPU(double X0, double K, double r, double sigma, double T, int N) {
     this->X0 = X0;
     this->K = K;
     this->r = r;
@@ -20,12 +20,12 @@ AmericanOption::AmericanOption(double X0, double K, double r, double sigma, doub
     this->prices = new double[N * N];
 }
 
-AmericanOption::~AmericanOption() {
+AmericanOptionCPU::~AmericanOptionCPU() {
     delete [] this->prices;
 }
 
-std::string AmericanOption::toString() {
-    std::string result = "AmericanOption { X0 = " + std::to_string(this->X0)
+std::string AmericanOptionCPU::toString() {
+    std::string result = "AmericanOptionCPU { X0 = " + std::to_string(this->X0)
             + ", K = " + std::to_string(this->K)
             + ", r = " + std::to_string(this->r)
             + ", sigma = " + std::to_string(this->sigma)
@@ -35,11 +35,11 @@ std::string AmericanOption::toString() {
     return result;
 }
 
-double AmericanOption::payoff(double stock) {
+double AmericanOptionCPU::payoff(double stock) {
     return std::fmax(this->K - stock, 0);
 }
 
-void AmericanOption::pricing() {
+void AmericanOptionCPU::pricing() {
     // Initialization
     for (int j = 0; j < N; ++j) {
         double mult = std::pow(this->u, j) * std::pow(this->d, N - 1 - j);
@@ -67,6 +67,6 @@ void AmericanOption::pricing() {
     }
 }
 
-double AmericanOption::getPrice(int i, int j) {
+double AmericanOptionCPU::getPrice(int i, int j) {
     return this->prices[i * N + j];
 }

@@ -1,4 +1,4 @@
-#include "AmericanOptionOCL.hpp"
+#include "AmericanOptionCPU.hpp"
 
 #include <iostream>
 #include <ctime>
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
         int N = std::atoi(argv[6]);
 
         // Create american option
-        AmericanOptionOCL *option = new AmericanOptionOCL(X0, K, r, sigma, T, N);
+        AmericanOptionCPU *option = new AmericanOptionCPU(X0, K, r, sigma, T, N);
 
         // Output option details
         std::cout << option->toString() << std::endl;

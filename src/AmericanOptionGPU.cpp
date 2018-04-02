@@ -1,4 +1,4 @@
-#include "AmericanOptionOCL.hpp"
+#include "AmericanOptionGPU.hpp"
 
 #include <CL/cl.hpp>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <string>
 #include <cmath>
 
-AmericanOptionOCL::AmericanOptionOCL(double X0, double K, double r, double sigma, double T, int N) {
+AmericanOptionGPU::AmericanOptionGPU(double X0, double K, double r, double sigma, double T, int N) {
     this->X0 = X0;
     this->K = K;
     this->r = r;
@@ -65,12 +65,12 @@ AmericanOptionOCL::AmericanOptionOCL(double X0, double K, double r, double sigma
     }
 }
 
-AmericanOptionOCL::~AmericanOptionOCL() {
+AmericanOptionGPU::~AmericanOptionGPU() {
     delete[] this->prices;
 }
 
-std::string AmericanOptionOCL::toString() {
-    std::string result = "AmericanOptionOCL { X0 = " + std::to_string(this->X0)
+std::string AmericanOptionGPU::toString() {
+    std::string result = "AmericanOptionGPU { X0 = " + std::to_string(this->X0)
             + ", K = " + std::to_string(this->K)
             + ", r = " + std::to_string(this->r)
             + ", sigma = " + std::to_string(this->sigma)
@@ -80,11 +80,11 @@ std::string AmericanOptionOCL::toString() {
     return result;
 }
 
-double AmericanOptionOCL::payoff(double stock) {
+double AmericanOptionGPU::payoff(double stock) {
     return std::fmax(this->K - stock, 0);
 }
 
-void AmericanOptionOCL::pricing() {
+void AmericanOptionGPU::pricing() {
     // Matrix size
     int size = this->N * this->N;
 
@@ -130,6 +130,6 @@ void AmericanOptionOCL::pricing() {
     queue.enqueueReadBuffer(buffer_prices, CL_TRUE, 0, sizeof(double) * size, this->prices);
 }
 
-double AmericanOptionOCL::getPrice(int i, int j) {
+double AmericanOptionGPU::getPrice(int i, int j) {
     return this->prices[i * N + j];
 }
