@@ -5,8 +5,8 @@ Binomial American Option Pricer with OpenCL
 ## Dependencies
 
 - C++11
-- cmake >= 3.6.3
-- gcc >= 7.2
+- cmake
+- gcc
 
 ### PNL
 
@@ -27,13 +27,25 @@ make
 
 ## Run
 
+Run the CPU Pricer with:
 ```
-./standard-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+./cpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
 ```
 
 Example:
 
 ```
-./standard-pricer 100 100 0.05 0.2 3 5000
+./cpu-pricer 100 100 0.05 0.2 3 5000
 ```
-Should return 8.65 approximately
+Should return 8.71 approximately
+
+
+You can run the GPU Pricer (using OpenCL) with:
+```
+./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+```
+
+Don't forget to enable your graphic card. For laptop, use tools like `optirun`:
+```
+optirun ./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+```
