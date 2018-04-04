@@ -18,7 +18,6 @@ __kernel void initial_prices(
 
 __kernel void binomial_pricer(
         __global double* prices,
-        const int line,
         const int N,
         const double X0,
         const double K,
@@ -26,7 +25,8 @@ __kernel void binomial_pricer(
         const double h,
         const double u,
         const double d,
-        const double p
+        const double p,
+        const int line
         ) {
     int column = get_global_id(0);
 

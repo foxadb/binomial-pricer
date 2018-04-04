@@ -14,7 +14,7 @@ AmericanOptionCPU::AmericanOptionCPU(double X0, double K, double r, double sigma
 
     this->h = T / N;
     this->u = std::exp(sigma * std::sqrt(this->h));
-    this->d = std::exp(-sigma * std::sqrt(this->h));
+    this->d = 1 / this->u;
     this->p = (d - std::exp(r * this->h)) / (d - u);
 
     this->prices = new double[N * N];

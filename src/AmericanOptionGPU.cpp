@@ -16,7 +16,7 @@ AmericanOptionGPU::AmericanOptionGPU(double X0, double K, double r, double sigma
 
     this->h = T / N;
     this->u = std::exp(sigma * std::sqrt(this->h));
-    this->d = std::exp(-sigma * std::sqrt(this->h));
+    this->d = 1 / this->u;
     this->p = (d - std::exp(r * this->h)) / (d - u);
 
     // Prices matrix
@@ -107,26 +107,26 @@ void AmericanOptionGPU::pricing() {
     initial_prices.setArg(5, sizeof(cl_double), &this->d);
     queue.enqueueNDRangeKernel(initial_prices, cl::NullRange, cl::NDRange(this->N), cl::NullRange);
 
+    // Compute binomial prices
+    cl::Kernel binomial_pricer = cl::Kernel(this->program, "binomial_pricer");
+    binomial_pricer.setArg(0, buffer_prices);
+    binomial_pricer.setArg(1, sizeof(cl_int), &this->N);
+    binomial_pricer.setArg(2, sizeof(cl_double), &this->X0);
+    binomial_pricer.setArg(3, sizeof(cl_double), &this->K);
+    binomial_pricer.setArg(4, sizeof(cl_double), &this->r);
+    binomial_pricer.setArg(5, sizeof(cl_double), &this->h);
+    binomial_pricer.setArg(6, sizeof(cl_double), &this->u);
+    binomial_pricer.setArg(7, sizeof(cl_double), &this->d);
+    binomial_pricer.setArg(8, sizeof(cl_double), &this->p);
     for (int line = N - 2; line >= 0; --line) {
-        // Run kernel
-        cl::Kernel binomial_pricer = cl::Kernel(this->program, "binomial_pricer");
-        binomial_pricer.setArg(0, buffer_prices);
-        binomial_pricer.setArg(1, sizeof(cl_int), &line);
-        binomial_pricer.setArg(2, sizeof(cl_int), &this->N);
-        binomial_pricer.setArg(3, sizeof(cl_double), &this->X0);
-        binomial_pricer.setArg(4, sizeof(cl_double), &this->K);
-        binomial_pricer.setArg(5, sizeof(cl_double), &this->r);
-        binomial_pricer.setArg(6, sizeof(cl_double), &this->h);
-        binomial_pricer.setArg(7, sizeof(cl_double), &this->u);
-        binomial_pricer.setArg(8, sizeof(cl_double), &this->d);
-        binomial_pricer.setArg(9, sizeof(cl_double), &this->p);
+        binomial_pricer.setArg(9, sizeof(cl_int), &line);
         queue.enqueueNDRangeKernel(binomial_pricer, cl::NullRange, cl::NDRange(line + 1), cl::NullRange);
     }
 
     // Finish queue
     queue.finish();
 
-    // Read result C from the device to array C
+    // Read result from the device to prices array
     queue.enqueueReadBuffer(buffer_prices, CL_TRUE, 0, sizeof(double) * size, this->prices);
 }
 
