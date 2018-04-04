@@ -8,14 +8,6 @@ Binomial American Option Pricer with OpenCL
 - cmake
 - gcc
 
-### PNL
-
-This project requires [PNL](https://github.com/pnlnum/pnl)
-You have to clone and build this library.
-
-Then set the `PNL_DIR` in the root `CMakeLists.txt`
-This directory is the PNL build directory containing the lib file.
-
 ## Build
 
 ```
