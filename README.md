@@ -43,10 +43,12 @@ Should return 8.71 approximately
 
 You can run the GPU Pricer (using OpenCL) with:
 ```
-./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ] [ work group size ]
 ```
+
+Try with small value of work group size at first (between 1 and 10) to find the optimal one.
 
 Do not forget to enable your graphic card. For laptop, use tools like `optirun`:
 ```
-optirun ./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]
+optirun ./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ] [ work group size ]
 ```

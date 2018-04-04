@@ -4,7 +4,7 @@
 #include <ctime>
 
 int main(int argc, char *argv[]) {
-    if (argc == 7) {
+    if (argc == 8) {
         // Parse arguments
         double X0 = std::atof(argv[1]);
         double K = std::atof(argv[2]);
@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
         double sigma = std::atof(argv[4]);
         double T = std::atof(argv[5]);
         int N = std::atoi(argv[6]);
+        int groupSize = std::atoi(argv[7]);
 
         // Create american option
         AmericanOptionGPU *option = new AmericanOptionGPU(X0, K, r, sigma, T, N);
@@ -21,12 +22,12 @@ int main(int argc, char *argv[]) {
 
         // Pricing with timer
         std::clock_t start = std::clock();
-        option->pricing();
+        double price = option->pricing(groupSize);
         std::clock_t end = std::clock();
         double duration = (double)(end - start) / CLOCKS_PER_SEC;
 
         // Print price at 0
-        std::cout << "Price: " << option->getPrice(0, 0) << std::endl;
+        std::cout << "Price: " << price << std::endl;
 
         // Show timer
         std::cout << "Computation time: " << duration << " s" << std::endl;
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
         // Free memory
         delete option;
     } else {
-        std::cout << "Usage: pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ]" << std::endl;
+        std::cout << "Usage: pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ] [ work group size]" << std::endl;
     }
 
     // Program end

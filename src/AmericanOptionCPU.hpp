@@ -8,7 +8,7 @@ public:
 
     std::string toString();
     double payoff(double stock);
-    void pricing();
+    double pricing();
     double getPrice(int i, int j);
 
 private:

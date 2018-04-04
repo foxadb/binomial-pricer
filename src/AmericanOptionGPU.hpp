@@ -8,9 +8,7 @@ public:
     ~AmericanOptionGPU();
 
     std::string toString();
-    double payoff(double stock);
-    void pricing();
-    double getPrice(int i, int j);
+    double pricing(int groupSize);
 
 private:
     double X0;
@@ -24,8 +22,6 @@ private:
     double u;
     double d;
     double p;
-
-    double* prices;
 
     cl::Platform platform;
     cl::Device device;

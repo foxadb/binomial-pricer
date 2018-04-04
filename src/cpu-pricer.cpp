@@ -21,12 +21,12 @@ int main(int argc, char *argv[]) {
 
         // Pricing with timer
         std::clock_t start = std::clock();
-        option->pricing();
+        double price = option->pricing();
         std::clock_t end = std::clock();
         double duration = (double)(end - start) / CLOCKS_PER_SEC;
 
         // Print price at 0
-        std::cout << "Price: " << option->getPrice(0, 0) << std::endl;
+        std::cout << "Price: " << price << std::endl;
 
         // Show timer
         std::cout << "Computation time: " << duration << " s" << std::endl;

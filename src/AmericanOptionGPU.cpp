@@ -19,9 +19,6 @@ AmericanOptionGPU::AmericanOptionGPU(double X0, double K, double r, double sigma
     this->d = 1 / this->u;
     this->p = (d - std::exp(r * this->h)) / (d - u);
 
-    // Prices matrix
-    this->prices = new double[this->N * this->N]();
-
     // Get OpenCL platforms (drivers)
     std::vector<cl::Platform> all_platforms;
     cl::Platform::get(&all_platforms);
@@ -65,9 +62,7 @@ AmericanOptionGPU::AmericanOptionGPU(double X0, double K, double r, double sigma
     }
 }
 
-AmericanOptionGPU::~AmericanOptionGPU() {
-    delete[] this->prices;
-}
+AmericanOptionGPU::~AmericanOptionGPU() {}
 
 std::string AmericanOptionGPU::toString() {
     std::string result = "AmericanOptionGPU { X0 = " + std::to_string(this->X0)
@@ -80,26 +75,17 @@ std::string AmericanOptionGPU::toString() {
     return result;
 }
 
-double AmericanOptionGPU::payoff(double stock) {
-    return std::fmax(this->K - stock, 0);
-}
-
-void AmericanOptionGPU::pricing() {
-    // Matrix size
-    int size = this->N * this->N;
-
+double AmericanOptionGPU::pricing(int groupSize) {
     // Create buffers on the device
-    cl::Buffer buffer_prices(this->context, CL_MEM_READ_WRITE, sizeof(double) * size);
+    cl::Buffer buffer_A(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
+    cl::Buffer buffer_B(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
 
     // Create queue to which we will push commands for the device.
     cl::CommandQueue queue(this->context, this->device);
 
-    // Write arrays A and B to the device
-    queue.enqueueWriteBuffer(buffer_prices, CL_TRUE, 0, sizeof(double) * size, this->prices);
-
     // Initialize prices
     cl::Kernel initial_prices = cl::Kernel(this->program, "initial_prices");
-    initial_prices.setArg(0, buffer_prices);
+    initial_prices.setArg(0, buffer_A);
     initial_prices.setArg(1, sizeof(cl_int), &this->N);
     initial_prices.setArg(2, sizeof(cl_double), &this->X0);
     initial_prices.setArg(3, sizeof(cl_double), &this->K);
@@ -107,29 +93,39 @@ void AmericanOptionGPU::pricing() {
     initial_prices.setArg(5, sizeof(cl_double), &this->d);
     queue.enqueueNDRangeKernel(initial_prices, cl::NullRange, cl::NDRange(this->N), cl::NullRange);
 
+    // Block until init kernel finishes execution
+    queue.enqueueBarrierWithWaitList();
+
     // Compute binomial prices
     cl::Kernel binomial_pricer = cl::Kernel(this->program, "binomial_pricer");
-    binomial_pricer.setArg(0, buffer_prices);
-    binomial_pricer.setArg(1, sizeof(cl_int), &this->N);
-    binomial_pricer.setArg(2, sizeof(cl_double), &this->X0);
-    binomial_pricer.setArg(3, sizeof(cl_double), &this->K);
-    binomial_pricer.setArg(4, sizeof(cl_double), &this->r);
-    binomial_pricer.setArg(5, sizeof(cl_double), &this->h);
-    binomial_pricer.setArg(6, sizeof(cl_double), &this->u);
-    binomial_pricer.setArg(7, sizeof(cl_double), &this->d);
-    binomial_pricer.setArg(8, sizeof(cl_double), &this->p);
-    for (int line = N - 2; line >= 0; --line) {
-        binomial_pricer.setArg(9, sizeof(cl_int), &line);
-        queue.enqueueNDRangeKernel(binomial_pricer, cl::NullRange, cl::NDRange(line + 1), cl::NullRange);
+    binomial_pricer.setArg(0, sizeof(cl_int), &this->N);
+    binomial_pricer.setArg(1, sizeof(cl_double), &this->X0);
+    binomial_pricer.setArg(2, sizeof(cl_double), &this->K);
+    binomial_pricer.setArg(3, sizeof(cl_double), &this->r);
+    binomial_pricer.setArg(4, sizeof(cl_double), &this->h);
+    binomial_pricer.setArg(5, sizeof(cl_double), &this->u);
+    binomial_pricer.setArg(6, sizeof(cl_double), &this->d);
+    binomial_pricer.setArg(7, sizeof(cl_double), &this->p);
+    binomial_pricer.setArg(8, sizeof(cl_int), &groupSize);
+    for (int i = 0; i < N - 1; ++i) {
+        binomial_pricer.setArg(9, i % 2 ? buffer_B : buffer_A);
+        binomial_pricer.setArg(10, i % 2 ? buffer_A : buffer_B);
+
+        int nodesNb = this->N - 1 - i;
+        binomial_pricer.setArg(11, sizeof(cl_int), &nodesNb);
+
+        int workItemsNb = std::ceil((double) nodesNb / groupSize);
+        queue.enqueueNDRangeKernel(binomial_pricer, cl::NullRange, cl::NDRange(workItemsNb), cl::NullRange);
+
+        // Block until init kernel finishes execution
+        queue.enqueueBarrierWithWaitList();
     }
 
     // Finish queue
     queue.finish();
 
-    // Read result from the device to prices array
-    queue.enqueueReadBuffer(buffer_prices, CL_TRUE, 0, sizeof(double) * size, this->prices);
-}
-
-double AmericanOptionGPU::getPrice(int i, int j) {
-    return this->prices[i * N + j];
+    // Return price at 0
+    double price = -1;
+    queue.enqueueReadBuffer(this->N % 2 ? buffer_A : buffer_B, CL_TRUE, 0, sizeof(double), &price);
+    return price;
 }

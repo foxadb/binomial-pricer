@@ -39,7 +39,7 @@ double AmericanOptionCPU::payoff(double stock) {
     return std::fmax(this->K - stock, 0);
 }
 
-void AmericanOptionCPU::pricing() {
+double AmericanOptionCPU::pricing() {
     // Initialization
     for (int j = 0; j < N; ++j) {
         double mult = std::pow(this->u, j) * std::pow(this->d, N - 1 - j);
@@ -65,6 +65,8 @@ void AmericanOptionCPU::pricing() {
             mult *= this->u / this->d;
         }
     }
+
+    return this->prices[0];
 }
 
 double AmericanOptionCPU::getPrice(int i, int j) {
