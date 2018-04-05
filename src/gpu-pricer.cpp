@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
         double sigma = std::atof(argv[4]);
         double T = std::atof(argv[5]);
         int N = std::atoi(argv[6]);
-        int groupSize = std::atoi(argv[7]);
+        int stepSize = std::atoi(argv[7]);
 
         // Create american option
         AmericanOptionGPU *option = new AmericanOptionGPU(X0, K, r, sigma, T, N);
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 
         // Pricing with timer
         std::clock_t start = std::clock();
-        double price = option->pricing(groupSize);
+        double price = option->linearPricing(stepSize);
         std::clock_t end = std::clock();
         double duration = (double)(end - start) / CLOCKS_PER_SEC;
 

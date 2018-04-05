@@ -1,4 +1,4 @@
-#include "AmericanOptionGPU.hpp"
+﻿#include "AmericanOptionGPU.hpp"
 
 #include <CL/cl.hpp>
 #include <iostream>
@@ -75,7 +75,7 @@ std::string AmericanOptionGPU::toString() {
     return result;
 }
 
-double AmericanOptionGPU::pricing(int groupSize) {
+double AmericanOptionGPU::linearPricing(int groupSize) {
     // Create buffers on the device
     cl::Buffer buffer_A(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
     cl::Buffer buffer_B(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
@@ -84,38 +84,37 @@ double AmericanOptionGPU::pricing(int groupSize) {
     cl::CommandQueue queue(this->context, this->device);
 
     // Initialize prices
-    cl::Kernel initial_prices = cl::Kernel(this->program, "initial_prices");
-    initial_prices.setArg(0, buffer_A);
-    initial_prices.setArg(1, sizeof(cl_int), &this->N);
-    initial_prices.setArg(2, sizeof(cl_double), &this->X0);
-    initial_prices.setArg(3, sizeof(cl_double), &this->K);
-    initial_prices.setArg(4, sizeof(cl_double), &this->u);
-    initial_prices.setArg(5, sizeof(cl_double), &this->d);
-    queue.enqueueNDRangeKernel(initial_prices, cl::NullRange, cl::NDRange(this->N), cl::NullRange);
+    cl::Kernel initialKernel = cl::Kernel(this->program, "initial");
+    initialKernel.setArg(0, sizeof(cl_int), &this->N);
+    initialKernel.setArg(1, sizeof(cl_double), &this->X0);
+    initialKernel.setArg(2, sizeof(cl_double), &this->K);
+    initialKernel.setArg(3, sizeof(cl_double), &this->d);
+    initialKernel.setArg(4, buffer_A);
+    queue.enqueueNDRangeKernel(initialKernel, cl::NullRange, cl::NDRange(this->N), cl::NullRange);
 
     // Block until init kernel finishes execution
     queue.enqueueBarrierWithWaitList();
 
+    // Compute the discount factor
+    double discountFactor = 1 / std::exp(this->r * this->h);
+
     // Compute binomial prices
-    cl::Kernel binomial_pricer = cl::Kernel(this->program, "binomial_pricer");
-    binomial_pricer.setArg(0, sizeof(cl_int), &this->N);
-    binomial_pricer.setArg(1, sizeof(cl_double), &this->X0);
-    binomial_pricer.setArg(2, sizeof(cl_double), &this->K);
-    binomial_pricer.setArg(3, sizeof(cl_double), &this->r);
-    binomial_pricer.setArg(4, sizeof(cl_double), &this->h);
-    binomial_pricer.setArg(5, sizeof(cl_double), &this->u);
-    binomial_pricer.setArg(6, sizeof(cl_double), &this->d);
-    binomial_pricer.setArg(7, sizeof(cl_double), &this->p);
-    binomial_pricer.setArg(8, sizeof(cl_int), &groupSize);
+    cl::Kernel linearKernel = cl::Kernel(this->program, "linear");
+    linearKernel.setArg(0, sizeof(cl_double), &this->X0);
+    linearKernel.setArg(1, sizeof(cl_double), &this->K);
+    linearKernel.setArg(2, sizeof(cl_double), &this->d);
+    linearKernel.setArg(3, sizeof(cl_double), &this->p);
+    linearKernel.setArg(4, sizeof(cl_double), &discountFactor);
+    linearKernel.setArg(5, sizeof(cl_int), &groupSize);
     for (int i = 0; i < N - 1; ++i) {
-        binomial_pricer.setArg(9, i % 2 ? buffer_B : buffer_A);
-        binomial_pricer.setArg(10, i % 2 ? buffer_A : buffer_B);
+        linearKernel.setArg(6, i % 2 ? buffer_B : buffer_A);
+        linearKernel.setArg(7, i % 2 ? buffer_A : buffer_B);
 
         int nodesNb = this->N - 1 - i;
-        binomial_pricer.setArg(11, sizeof(cl_int), &nodesNb);
+        linearKernel.setArg(8, sizeof(cl_int), &nodesNb);
 
         int workItemsNb = std::ceil((double) nodesNb / groupSize);
-        queue.enqueueNDRangeKernel(binomial_pricer, cl::NullRange, cl::NDRange(workItemsNb), cl::NullRange);
+        queue.enqueueNDRangeKernel(linearKernel, cl::NullRange, cl::NDRange(workItemsNb), cl::NullRange);
 
         // Block until init kernel finishes execution
         queue.enqueueBarrierWithWaitList();

@@ -3,28 +3,28 @@
  * Device code
  */
 
-__kernel void initial_prices(
-        __global double* prices,
+__kernel void initial(
         const int N,
         const double X0,
         const double K,
-        const double u,
-        const double d
+        const double d,
+        __global double* prices
         ) {
     int i = get_global_id(0);
-    double mult = pow(u, i) * pow(d, N - 1 - i);
+
+    // i times u and N - 1 - i times d => N - 1 - 2 * i times d
+    double mult = pow(d, N - 1 - 2 * i);
+
+    // Set price value
     prices[i] = fmax(K - X0 * mult, 0);
 }
 
-__kernel void binomial_pricer(
-        const int N,
+__kernel void linear(
         const double X0,
         const double K,
-        const double r,
-        const double h,
-        const double u,
         const double d,
         const double p,
+        const double discountFactor,
         const int groupSize,
         __global double* pricesIn,
         __global double* pricesOut,
@@ -35,13 +35,13 @@ __kernel void binomial_pricer(
 
     for (int i = startIndex; i < endIndex; ++i) {
         // Compute multiplier
-        double mult = pow(d, nodesNb - 1 - i) * pow(u, i);
+        double mult = pow(d, nodesNb - 1 - 2 * i);
 
         // Compute payoff
         double payoff = fmax(K - X0 * mult, 0);
 
         // Compute price
-        double price = fmax(exp(-r * h)
+        double price = fmax(discountFactor
                 * (pricesIn[i] * (1 - p) + pricesIn[i + 1] * p),
                 payoff);
 

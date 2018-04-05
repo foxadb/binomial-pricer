@@ -8,7 +8,7 @@ public:
     ~AmericanOptionGPU();
 
     std::string toString();
-    double pricing(int groupSize);
+    double linearPricing(int groupSize);
 
 private:
     double X0;
@@ -16,7 +16,7 @@ private:
     double r;
     double sigma;
     double T;
-    size_t N;
+    int N;
 
     double h;
     double u;

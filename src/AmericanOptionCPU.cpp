@@ -46,6 +46,9 @@ double AmericanOptionCPU::pricing() {
         this->prices[(N - 1) * N + j] = this->payoff(this->X0 * mult);
     }
 
+    // Compute the discount factor
+    double discountFactor = 1 / std::exp(this->r * this->h);
+
     for (int i = N - 2; i >= 0; --i) {
         double mult = std::pow(this->d, i);
         for (int j = 0; j <= i; ++j) {
@@ -53,7 +56,7 @@ double AmericanOptionCPU::pricing() {
             double payoff = this->payoff(this->X0 * mult);
 
             // Compute price
-            double price = std::fmax(std::exp(-this->r * this->h)
+            double price = std::fmax(discountFactor
                                      * (this->prices[(i + 1) * N + j] * (1 - this->p)
                                      + this->prices[(i + 1) * N + j + 1] * this->p),
                     payoff);
@@ -65,6 +68,22 @@ double AmericanOptionCPU::pricing() {
             mult *= this->u / this->d;
         }
     }
+
+    /*
+    printf("\n");
+    for (int i = this->N - 1; i >= 0; --i) {
+        for (int j = 0; j <= i; ++j) {
+            double price = this->prices[i * N + j];
+            if (price) {
+                printf("%.2lf \t", price);
+            } else {
+                printf("0\t");
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+    */
 
     return this->prices[0];
 }
