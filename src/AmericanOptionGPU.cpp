@@ -75,7 +75,7 @@ std::string AmericanOptionGPU::toString() {
     return result;
 }
 
-double AmericanOptionGPU::linearPricing(int groupSize) {
+double AmericanOptionGPU::pingPongPricing(int groupSize) {
     // Create buffers on the device
     cl::Buffer buffer_A(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
     cl::Buffer buffer_B(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
@@ -99,22 +99,23 @@ double AmericanOptionGPU::linearPricing(int groupSize) {
     double discountFactor = 1 / std::exp(this->r * this->h);
 
     // Compute binomial prices
-    cl::Kernel linearKernel = cl::Kernel(this->program, "linear");
-    linearKernel.setArg(0, sizeof(cl_double), &this->X0);
-    linearKernel.setArg(1, sizeof(cl_double), &this->K);
-    linearKernel.setArg(2, sizeof(cl_double), &this->d);
-    linearKernel.setArg(3, sizeof(cl_double), &this->p);
-    linearKernel.setArg(4, sizeof(cl_double), &discountFactor);
-    linearKernel.setArg(5, sizeof(cl_int), &groupSize);
+    cl::Kernel pingPongKernel = cl::Kernel(this->program, "pingPong");
+    pingPongKernel.setArg(0, sizeof(cl_double), &this->X0);
+    pingPongKernel.setArg(1, sizeof(cl_double), &this->K);
+    pingPongKernel.setArg(2, sizeof(cl_double), &this->d);
+    pingPongKernel.setArg(3, sizeof(cl_double), &this->p);
+    pingPongKernel.setArg(4, sizeof(cl_double), &discountFactor);
+    pingPongKernel.setArg(5, sizeof(cl_int), &groupSize);
     for (int i = 0; i < N - 1; ++i) {
-        linearKernel.setArg(6, i % 2 ? buffer_B : buffer_A);
-        linearKernel.setArg(7, i % 2 ? buffer_A : buffer_B);
+        pingPongKernel.setArg(6, i % 2 ? buffer_B : buffer_A);
+        pingPongKernel.setArg(7, i % 2 ? buffer_A : buffer_B);
 
         int nodesNb = this->N - 1 - i;
-        linearKernel.setArg(8, sizeof(cl_int), &nodesNb);
+        pingPongKernel.setArg(8, sizeof(cl_int), &nodesNb);
 
         int workItemsNb = std::ceil((double) nodesNb / groupSize);
-        queue.enqueueNDRangeKernel(linearKernel, cl::NullRange, cl::NDRange(workItemsNb), cl::NullRange);
+        queue.enqueueNDRangeKernel(pingPongKernel, cl::NullRange,
+                                   cl::NDRange(workItemsNb), cl::NullRange);
 
         // Block until init kernel finishes execution
         queue.enqueueBarrierWithWaitList();
@@ -126,5 +127,36 @@ double AmericanOptionGPU::linearPricing(int groupSize) {
     // Return price at 0
     double price = -1;
     queue.enqueueReadBuffer(this->N % 2 ? buffer_A : buffer_B, CL_TRUE, 0, sizeof(double), &price);
+    return price;
+}
+
+double AmericanOptionGPU::branchClimbPricing() {
+    cl::Buffer buffer_prices(this->context, CL_MEM_READ_WRITE, sizeof(double) * this->N);
+
+    // Create queue to which we will push commands for the device.
+    cl::CommandQueue queue(this->context, this->device);
+
+    // Compute the discount factor
+    double discountFactor = 1 / std::exp(this->r * this->h);
+
+    // Compute binomial prices
+    cl::Kernel branchClimbKernel = cl::Kernel(this->program, "branchClimb");
+    branchClimbKernel.setArg(0, sizeof(cl_int), &this->N);
+    branchClimbKernel.setArg(1, sizeof(cl_double), &this->X0);
+    branchClimbKernel.setArg(2, sizeof(cl_double), &this->K);
+    branchClimbKernel.setArg(3, sizeof(cl_double), &this->d);
+    branchClimbKernel.setArg(4, sizeof(cl_double), &this->p);
+    branchClimbKernel.setArg(5, sizeof(cl_double), &discountFactor);
+    branchClimbKernel.setArg(6, buffer_prices);
+    branchClimbKernel.setArg(7, cl::Local(sizeof(double) * this->N));
+    queue.enqueueNDRangeKernel(branchClimbKernel, cl::NullRange,
+                               cl::NDRange(this->N), cl::NullRange);
+
+    // Finish queue
+    queue.finish();
+
+    // Return price at 0
+    double price = -1;
+    queue.enqueueReadBuffer(buffer_prices, CL_TRUE, 0, sizeof(double), &price);
     return price;
 }

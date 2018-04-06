@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Price: " << price << std::endl;
 
         // Show timer
-        std::cout << "Computation time: " << duration << " s" << std::endl;
+        std::cout << "Timer: " << duration << " s" << std::endl;
 
         // Free memory
         delete option;

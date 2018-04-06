@@ -8,7 +8,8 @@ public:
     ~AmericanOptionGPU();
 
     std::string toString();
-    double linearPricing(int groupSize);
+    double pingPongPricing(int groupSize);
+    double branchClimbPricing();
 
 private:
     double X0;
