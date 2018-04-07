@@ -69,22 +69,6 @@ float AmericanOptionCPU::pricing() {
         }
     }
 
-    /*
-    printf("\n");
-    for (int i = this->N - 1; i >= 0; --i) {
-        for (int j = 0; j <= i; ++j) {
-            float price = this->prices[i * N + j];
-            if (price) {
-                printf("%.2lf \t", price);
-            } else {
-                printf("0\t");
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-    */
-
     return this->prices[0];
 }
 

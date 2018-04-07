@@ -59,30 +59,32 @@ __kernel void branchClimb(
         const float discountFactor,
         __global float* prices
         ) {
-    int id = get_global_id(0);
+    int id = get_local_id(0);
 
-    // Iterate over tree row
-    for (int i = N; i > 0; --i) {
-        float mult = pow(d, i - 1 - 2 * id);
+    // Iterate over tree rows
+    for (int row = N; row > 0; --row) {
+        float mult = pow(d, row - 1 - 2 * id);
         float payoff = fmax(K - X0 * mult, 0);
         float price;
 
-        // Synchronize work-items between each time-step
+        // Synchronize work-items to avoid memory conflicts
         barrier(CLK_LOCAL_MEM_FENCE);
 
         // Initialize tree leaves
-        if (i == N) {
+        if (row == N) {
             price = payoff;
         }
         // Lift the tree by branch
-        else if (id < i) {
+        else if (id < row) {
             price = fmax(discountFactor
                     * (prices[id] * (1 - p) + prices[id + 1] * p),
                     payoff);
         }
 
-        // Synchronize work-items between each time-step
+        // Synchronize work-items to avoid memory conflicts
         barrier(CLK_LOCAL_MEM_FENCE);
+
+        // Set price value
         prices[id] = price;
     }
 }

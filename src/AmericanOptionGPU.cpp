@@ -131,6 +131,14 @@ float AmericanOptionGPU::pingPongPricing(int groupSize) {
 }
 
 float AmericanOptionGPU::branchClimbPricing() {
+    int maxWorkGroupSize = this->device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+    if (this->N > maxWorkGroupSize) {
+        std::cerr << "Max Group Size is limited to " << maxWorkGroupSize
+                  << " by the OpenCL device" << std::endl
+                  << "This functionnality may not work correctly"
+                  << std::endl;
+    }
+
     cl::Buffer buffer_prices(this->context, CL_MEM_READ_WRITE, sizeof(float) * this->N);
 
     // Create queue to which we will push commands for the device.
@@ -149,7 +157,7 @@ float AmericanOptionGPU::branchClimbPricing() {
     branchClimbKernel.setArg(5, sizeof(cl_float), &discountFactor);
     branchClimbKernel.setArg(6, buffer_prices);
     queue.enqueueNDRangeKernel(branchClimbKernel, cl::NullRange,
-                               cl::NDRange(this->N), cl::NullRange);
+                               cl::NDRange(this->N), cl::NDRange(this->N));
 
     // Finish queue
     queue.finish();
