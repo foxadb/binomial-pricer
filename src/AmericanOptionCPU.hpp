@@ -3,26 +3,26 @@
 class AmericanOptionCPU {
 public:
 
-    AmericanOptionCPU(double X0, double K, double r, double sigma, double T, int N);
+    AmericanOptionCPU(float X0, float K, float r, float sigma, float T, int N);
     ~AmericanOptionCPU();
 
     std::string toString();
-    double payoff(double stock);
-    double pricing();
-    double getPrice(int i, int j);
+    float payoff(float stock);
+    float pricing();
+    float getPrice(int i, int j);
 
 private:
-    double X0;
-    double K;
-    double r;
-    double sigma;
-    double T;
+    float X0;
+    float K;
+    float r;
+    float sigma;
+    float T;
     int N;
 
-    double h;
-    double u;
-    double d;
-    double p;
+    float h;
+    float u;
+    float d;
+    float p;
 
-    double *prices;
+    float *prices;
 };

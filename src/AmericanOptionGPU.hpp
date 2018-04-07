@@ -4,25 +4,25 @@
 class AmericanOptionGPU {
 public:
 
-    AmericanOptionGPU(double X0, double K, double r, double sigma, double T, int N);
+    AmericanOptionGPU(float X0, float K, float r, float sigma, float T, int N);
     ~AmericanOptionGPU();
 
     std::string toString();
-    double pingPongPricing(int groupSize);
-    double branchClimbPricing();
+    float pingPongPricing(int groupSize);
+    float branchClimbPricing();
 
 private:
-    double X0;
-    double K;
-    double r;
-    double sigma;
-    double T;
+    float X0;
+    float K;
+    float r;
+    float sigma;
+    float T;
     int N;
 
-    double h;
-    double u;
-    double d;
-    double p;
+    float h;
+    float u;
+    float d;
+    float p;
 
     cl::Platform platform;
     cl::Device device;

@@ -6,11 +6,11 @@
 int main(int argc, char *argv[]) {
     if (argc == 8) {
         // Parse arguments
-        double X0 = std::atof(argv[1]);
-        double K = std::atof(argv[2]);
-        double r = std::atof(argv[3]);
-        double sigma = std::atof(argv[4]);
-        double T = std::atof(argv[5]);
+        float X0 = std::atof(argv[1]);
+        float K = std::atof(argv[2]);
+        float r = std::atof(argv[3]);
+        float sigma = std::atof(argv[4]);
+        float T = std::atof(argv[5]);
         int N = std::atoi(argv[6]);
         int groupSize = std::atoi(argv[7]);
 
@@ -25,9 +25,9 @@ int main(int argc, char *argv[]) {
         // Pricing
         std::cout << "=== Ping Pong method ===" << std::endl;
         std::clock_t ppStart = std::clock();
-        double ppPrice = option->pingPongPricing(groupSize);
+        float ppPrice = option->pingPongPricing(groupSize);
         std::clock_t ppEnd = std::clock();
-        double ppDuration = (double)(ppEnd - ppStart) / CLOCKS_PER_SEC;
+        float ppDuration = (float)(ppEnd - ppStart) / CLOCKS_PER_SEC;
 
         // Print price at 0
         std::cout << "Price: " << ppPrice << std::endl;
@@ -40,9 +40,9 @@ int main(int argc, char *argv[]) {
         // Pricing
         std::cout << "=== Branch Climb method ===" << std::endl;
         std::clock_t bcStart = std::clock();
-        double bcPrice = option->branchClimbPricing();
+        float bcPrice = option->branchClimbPricing();
         std::clock_t bcEnd = std::clock();
-        double bcDuration = (double)(bcEnd - bcStart) / CLOCKS_PER_SEC;
+        float bcDuration = (float)(bcEnd - bcStart) / CLOCKS_PER_SEC;
 
         // Print price at 0
         std::cout << "Price: " << bcPrice << std::endl;

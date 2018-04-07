@@ -4,7 +4,7 @@
 #include <string>
 #include <cmath>
 
-AmericanOptionCPU::AmericanOptionCPU(double X0, double K, double r, double sigma, double T, int N) {
+AmericanOptionCPU::AmericanOptionCPU(float X0, float K, float r, float sigma, float T, int N) {
     this->X0 = X0;
     this->K = K;
     this->r = r;
@@ -17,7 +17,7 @@ AmericanOptionCPU::AmericanOptionCPU(double X0, double K, double r, double sigma
     this->d = 1 / this->u;
     this->p = (d - std::exp(r * this->h)) / (d - u);
 
-    this->prices = new double[N * N];
+    this->prices = new float[N * N];
 }
 
 AmericanOptionCPU::~AmericanOptionCPU() {
@@ -35,28 +35,28 @@ std::string AmericanOptionCPU::toString() {
     return result;
 }
 
-double AmericanOptionCPU::payoff(double stock) {
+float AmericanOptionCPU::payoff(float stock) {
     return std::fmax(this->K - stock, 0);
 }
 
-double AmericanOptionCPU::pricing() {
+float AmericanOptionCPU::pricing() {
     // Initialization
     for (int j = 0; j < N; ++j) {
-        double mult = std::pow(this->u, j) * std::pow(this->d, N - 1 - j);
+        float mult = std::pow(this->u, j) * std::pow(this->d, N - 1 - j);
         this->prices[(N - 1) * N + j] = this->payoff(this->X0 * mult);
     }
 
     // Compute the discount factor
-    double discountFactor = 1 / std::exp(this->r * this->h);
+    float discountFactor = 1 / std::exp(this->r * this->h);
 
     for (int i = N - 2; i >= 0; --i) {
-        double mult = std::pow(this->d, i);
+        float mult = std::pow(this->d, i);
         for (int j = 0; j <= i; ++j) {
             // Compute payoff
-            double payoff = this->payoff(this->X0 * mult);
+            float payoff = this->payoff(this->X0 * mult);
 
             // Compute price
-            double price = std::fmax(discountFactor
+            float price = std::fmax(discountFactor
                                      * (this->prices[(i + 1) * N + j] * (1 - this->p)
                                      + this->prices[(i + 1) * N + j + 1] * this->p),
                     payoff);
@@ -73,7 +73,7 @@ double AmericanOptionCPU::pricing() {
     printf("\n");
     for (int i = this->N - 1; i >= 0; --i) {
         for (int j = 0; j <= i; ++j) {
-            double price = this->prices[i * N + j];
+            float price = this->prices[i * N + j];
             if (price) {
                 printf("%.2lf \t", price);
             } else {
@@ -88,6 +88,6 @@ double AmericanOptionCPU::pricing() {
     return this->prices[0];
 }
 
-double AmericanOptionCPU::getPrice(int i, int j) {
+float AmericanOptionCPU::getPrice(int i, int j) {
     return this->prices[i * N + j];
 }
