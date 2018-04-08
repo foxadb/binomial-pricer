@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
         float sigma = std::atof(argv[4]);
         float T = std::atof(argv[5]);
         int N = std::atoi(argv[6]);
-        int stepSize = std::atoi(argv[7]);
+        int groupSize = std::atoi(argv[7]);
 
         // Create american option
         AmericanOptionGPU *option = new AmericanOptionGPU(X0, K, r, sigma, T, N);
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         // Pricing
         std::cout << "=== Ping Pong method ===" << std::endl;
         std::clock_t ppStart = std::clock();
-        float ppPrice = option->pingPongPricing(stepSize);
+        float ppPrice = option->pingPongPricing(groupSize);
         std::clock_t ppEnd = std::clock();
         float ppDuration = (float)(ppEnd - ppStart) / CLOCKS_PER_SEC;
 

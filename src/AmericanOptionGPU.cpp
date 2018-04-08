@@ -75,7 +75,7 @@ std::string AmericanOptionGPU::toString() {
     return result;
 }
 
-float AmericanOptionGPU::pingPongPricing(int stepSize) {
+float AmericanOptionGPU::pingPongPricing(int groupSize) {
     // Create buffers on the device
     cl::Buffer buffer_A(this->context, CL_MEM_READ_WRITE, sizeof(float) * this->N);
     cl::Buffer buffer_B(this->context, CL_MEM_READ_WRITE, sizeof(float) * this->N);
@@ -105,7 +105,7 @@ float AmericanOptionGPU::pingPongPricing(int stepSize) {
     pingPongKernel.setArg(2, sizeof(cl_float), &this->d);
     pingPongKernel.setArg(3, sizeof(cl_float), &this->p);
     pingPongKernel.setArg(4, sizeof(cl_float), &discountFactor);
-    pingPongKernel.setArg(5, sizeof(cl_int), &stepSize);
+    pingPongKernel.setArg(5, sizeof(cl_int), &groupSize);
     for (int i = 0; i < N - 1; ++i) {
         pingPongKernel.setArg(6, i % 2 ? buffer_B : buffer_A);
         pingPongKernel.setArg(7, i % 2 ? buffer_A : buffer_B);
@@ -113,7 +113,7 @@ float AmericanOptionGPU::pingPongPricing(int stepSize) {
         int nodesNb = this->N - 1 - i;
         pingPongKernel.setArg(8, sizeof(cl_int), &nodesNb);
 
-        int workItemsNb = std::ceil((float) nodesNb / stepSize);
+        int workItemsNb = std::ceil((float) nodesNb / groupSize);
         queue.enqueueNDRangeKernel(pingPongKernel, cl::NullRange,
                                    cl::NDRange(workItemsNb), cl::NullRange);
 
