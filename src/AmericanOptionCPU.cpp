@@ -17,10 +17,16 @@ AmericanOptionCPU::AmericanOptionCPU(float X0, float K, float r, float sigma, fl
     this->d = 1 / this->u;
     this->p = (d - std::exp(r * this->h)) / (d - u);
 
-    this->prices = new float[N * N];
+    this->prices = new float*[N];
+    for (int i = 0; i < N; ++i) {
+        this->prices[i] = new float[N];
+    }
 }
 
 AmericanOptionCPU::~AmericanOptionCPU() {
+    for (int i = 0; i < this->N; ++i) {
+        delete this->prices[i];
+    }
     delete [] this->prices;
 }
 
@@ -43,7 +49,7 @@ float AmericanOptionCPU::pricing() {
     // Initialization
     for (int j = 0; j < N; ++j) {
         float mult = std::pow(this->u, j) * std::pow(this->d, N - 1 - j);
-        this->prices[(N - 1) * N + j] = this->payoff(this->X0 * mult);
+        this->prices[N - 1][j] = this->payoff(this->X0 * mult);
     }
 
     // Compute the discount factor
@@ -57,21 +63,21 @@ float AmericanOptionCPU::pricing() {
 
             // Compute price
             float price = std::fmax(discountFactor
-                                     * (this->prices[(i + 1) * N + j] * (1 - this->p)
-                                     + this->prices[(i + 1) * N + j + 1] * this->p),
+                                     * (this->prices[i + 1][j] * (1 - this->p)
+                                     + this->prices[i + 1][j + 1] * this->p),
                     payoff);
 
             // Storage price in the binomial tree
-            this->prices[i * N + j] = price;
+            this->prices[i][j] = price;
 
             // Update mult factor
             mult *= this->u / this->d;
         }
     }
 
-    return this->prices[0];
+    return this->prices[0][0];
 }
 
 float AmericanOptionCPU::getPrice(int i, int j) {
-    return this->prices[i * N + j];
+    return this->prices[i][j];
 }

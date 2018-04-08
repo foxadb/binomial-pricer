@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
         float sigma = std::atof(argv[4]);
         float T = std::atof(argv[5]);
         int N = std::atoi(argv[6]);
-        int groupSize = std::atoi(argv[7]);
+        int stepSize = std::atoi(argv[7]);
 
         // Create american option
         AmericanOptionGPU *option = new AmericanOptionGPU(X0, K, r, sigma, T, N);
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         // Pricing
         std::cout << "=== Ping Pong method ===" << std::endl;
         std::clock_t ppStart = std::clock();
-        float ppPrice = option->pingPongPricing(groupSize);
+        float ppPrice = option->pingPongPricing(stepSize);
         std::clock_t ppEnd = std::clock();
         float ppDuration = (float)(ppEnd - ppStart) / CLOCKS_PER_SEC;
 
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
         //// Branch lift method
 
         // Pricing
-        std::cout << "=== Branch Climb method ===" << std::endl;
+        std::cout << "=== Branch-Climbing method ===" << std::endl;
         std::clock_t bcStart = std::clock();
-        float bcPrice = option->branchClimbPricing();
+        float bcPrice = option->branchClimbingPricing();
         std::clock_t bcEnd = std::clock();
         float bcDuration = (float)(bcEnd - bcStart) / CLOCKS_PER_SEC;
 

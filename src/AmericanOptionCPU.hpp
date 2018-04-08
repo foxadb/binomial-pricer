@@ -24,5 +24,5 @@ private:
     float d;
     float p;
 
-    float *prices;
+    float** prices;
 };

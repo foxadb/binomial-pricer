@@ -50,14 +50,15 @@ __kernel void pingPong(
     }
 }
 
-__kernel void branchClimb(
+__kernel void branchClimbing(
         const int N,
         const float X0,
         const float K,
         const float d,
         const float p,
         const float discountFactor,
-        __global float* prices
+        __local float* prices,
+        __global float* finalPrice
         ) {
     int id = get_local_id(0);
 
@@ -86,5 +87,10 @@ __kernel void branchClimb(
 
         // Set price value
         prices[id] = price;
+    }
+
+    // Write result only one time
+    if (id == 0) {
+        *finalPrice = prices[0];
     }
 }

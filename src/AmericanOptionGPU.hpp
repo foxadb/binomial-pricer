@@ -9,7 +9,7 @@ public:
 
     std::string toString();
     float pingPongPricing(int groupSize);
-    float branchClimbPricing();
+    float branchClimbingPricing();
 
 private:
     float X0;
