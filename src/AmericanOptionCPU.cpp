@@ -63,8 +63,8 @@ float AmericanOptionCPU::pricing() {
 
             // Compute price
             float price = std::fmax(discountFactor
-                                     * (this->prices[i + 1][j] * (1 - this->p)
-                                     + this->prices[i + 1][j + 1] * this->p),
+                                    * (this->prices[i + 1][j] * (1 - this->p)
+                                    + this->prices[i + 1][j + 1] * this->p),
                     payoff);
 
             // Storage price in the binomial tree
