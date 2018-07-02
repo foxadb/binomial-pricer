@@ -1,13 +1,12 @@
-# binomial-pricer
+# Pricer of American Binomial Options
 
-Binomial American Option Pricer with OpenCL
+Implementation of an OpenCL pricer of american options pricer following the Cox-Ross-Rubinstein binomial model (CRR). 
 
 ## Dependencies
 
-- c++11
-- cmake
-- gcc
-- opencl
+This project uses C++11 and CMake >= 3.1.
+
+OpenCL must be installed on your computer.
 
 ## Build
 
@@ -39,7 +38,7 @@ You can run the GPU Pricer (using OpenCL) with:
 
 Try with small value of work group size at first (between 1 and 10) to find the optimal one.
 
-Do not forget to enable your graphic card. For laptop, use tools like `optirun`:
+Do not forget to enable your graphic card. For laptop, use tools like `optirun` or `primusrun`:
 ```
 optirun ./gpu-pricer [ X0 ] [ K ] [ r ] [ sigma ] [ T ] [ N ] [ work group size ]
 ```
